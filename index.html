@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUBA DCS · Centro de Control de Clientes</title>
+    <meta name="description" content="Dashboard de control de versiones de extensiones Business Central para clientes de Auba DCS">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           VARIABLES Y RESET
+        ================================================================ */
+        :root {
+            --auba-blue:       #1b6ec2;
+            --auba-blue-dark:  #1255a0;
+            --auba-blue-light: #eef6fd;
+            --bg-body:         #e9f0f7;
+            --bg-card:         #ffffff;
+            --border-color:    #cbd6e2;
+            --text-main:       #1e293b;
+            --text-muted:      #64748b;
+            --text-soft:       #94a3b8;
+            --success:         #059669;
+            --success-bg:      #d1fae5;
+            --warning:         #d97706;
+            --warning-bg:      #fef3c7;
+            --danger:          #dc2626;
+            --danger-bg:       #fee2e2;
+            --shadow-md:       0 8px 30px rgba(27,110,194,0.08);
+            --ms-blue:         #0078d4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ================================================================
+           HEADER
+        ================================================================ */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 20;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .header-title { display: flex; flex-direction: column; justify-content: center; }
+        .header-title h1 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .header-title p  { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
+        .logo-horizontal { height: 36px; width: auto; object-fit: contain; }
+
+        /* ================================================================
+           LAYOUT
+        ================================================================ */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 20px 24px;
+            gap: 0;
+        }
+
+        /* ================================================================
+           SIDEBAR
+        ================================================================ */
+        .sidebar {
+            width: 110px;
+            display: flex;
+            flex-direction: column;
+            padding-top: 48px;
+            z-index: 10;
+            position: relative;
+        }
+        .sidebar-logo-bottom { margin-top: auto; padding: 24px 12px; text-align: center; }
+        .logo-vertical { max-width: 50px; height: auto; object-fit: contain; }
+        .client-tab {
+            background: #d8e4f0;
+            border: 1px solid var(--border-color);
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            padding: 16px 0;
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            margin-right: -1px;
+        }
+        .client-tab:hover { background: #eef4f9; color: var(--auba-blue); }
+        .client-tab.active {
+            background: var(--bg-card);
+            color: var(--auba-blue);
+            font-weight: 700;
+            border-color: var(--border-color);
+            border-right: 1px solid var(--bg-card);
+            z-index: 2;
+            box-shadow: -4px 4px 10px rgba(0,0,0,0.02);
+        }
+        .tab-indicator {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: transparent;
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+        }
+        .client-tab.active .tab-indicator { background: var(--auba-blue); }
+
+        /* ================================================================
+           CONTENT AREA
+        ================================================================ */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-left: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* TOP TABS */
+        .tabs-bar {
+            display: flex;
+            gap: 8px;
+            padding: 0 32px;
+            position: relative;
+            z-index: 10;
+            height: 48px;
+            align-items: flex-end;
+        }
+        .tab-btn {
+            background: #d8e4f0;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            padding: 12px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            bottom: -1px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #eef4f9; color: var(--auba-blue); }
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--auba-blue);
+            border-color: var(--border-color);
+            border-bottom: 1px solid var(--bg-card);
+            z-index: 2;
+        }
+
+        /* SCROLL AREA */
+        .content-scroll {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 16px 16px 0;
+            overflow-y: auto;
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ================================================================
+           ENV BUTTONS
+        ================================================================ */
+        .env-buttons-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .env-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 180px;
+        }
+        .env-btn:hover { background: #fff; border-color: var(--auba-blue); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(27,110,194,0.08); }
+        .env-btn.active { background: var(--auba-blue-light); border: 2px solid var(--auba-blue); }
+        .env-type { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .env-btn.active .env-type { color: var(--auba-blue); }
+        .env-name { font-size: 18px; font-weight: 700; color: var(--text-main); margin-top: 4px; }
+        .env-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-top: 8px; display: inline-block; }
+        .badge-prod    { background: var(--success-bg); color: var(--success); }
+        .badge-sandbox { background: #cbd6e2; color: var(--text-main); }
+        .env-btn.active .badge-sandbox { background: #d0e4f5; color: var(--auba-blue-dark); }
+
+        /* ================================================================
+           INFO BAR
+        ================================================================ */
+        .env-info-bar {
+            background: var(--bg-body);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+        .info-item { display: flex; flex-direction: column; gap: 4px; }
+        .info-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-value { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .info-value.highlight { color: var(--auba-blue); }
+        .info-value.next-update { color: var(--warning); display: flex; align-items: center; gap: 5px; }
+        .info-value.mono { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: -0.3px; }
+        .info-link-box { margin-left: auto; }
+        .env-link {
+            font-size: 13px; font-weight: 600;
+            color: var(--auba-blue);
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1.5px solid var(--auba-blue);
+            border-radius: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .env-link:hover { background: var(--auba-blue); color: white; }
+
+        /* ================================================================
+           TABLE TOOLBAR
+        ================================================================ */
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .table-title-box { display: flex; align-items: center; gap: 10px; }
+        .table-title-box h3 { font-size: 15px; font-weight: 600; color: var(--text-main); }
+        .search-box {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 13px;
+            width: 240px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .search-box:focus { border-color: var(--auba-blue); box-shadow: 0 0 0 3px var(--auba-blue-light); }
+
+        /* ================================================================
+           PUBLISHER ACCORDION GROUPS
+        ================================================================ */
+        .pub-group {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .group-hdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: filter 0.15s;
+        }
+        .group-hdr:hover { filter: brightness(0.97); }
+
+        .hdr-auba      { background: linear-gradient(135deg, #eef6fd 0%, #dbeeff 100%); }
+        .hdr-microsoft { background: #f0f7ff; }
+        .hdr-otros     { background: #f8fafc; }
+
+        .group-hdr-left { display: flex; align-items: center; gap: 10px; }
+
+        .group-chevron {
+            width: 16px; height: 16px;
+            transition: transform 0.25s ease;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .group-chevron.rotated { transform: rotate(-90deg); }
+
+        .group-name { font-size: 14px; font-weight: 700; }
+        .gname-auba      { color: var(--auba-blue); }
+        .gname-microsoft { color: var(--ms-blue); }
+        .gname-otros     { color: var(--text-muted); }
+
+        .group-badge {
+            font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .gbadge-auba      { background: var(--auba-blue); color: white; }
+        .gbadge-microsoft { background: var(--ms-blue); color: white; }
+        .gbadge-otros     { background: var(--text-soft); color: white; }
+
+        .group-sub { font-size: 11px; color: var(--text-soft); }
+
+        /* Accordion body */
+        .group-bdy {
+            overflow: hidden;
+            transition: max-height 0.35s ease, opacity 0.25s ease;
+        }
+        .group-bdy.open   { max-height: 20000px; opacity: 1; }
+        .group-bdy.closed { max-height: 0; opacity: 0; }
+
+        /* ================================================================
+           TABLE
+        ================================================================ */
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th {
+            background: #f8fafc;
+            padding: 11px 18px;
+            font-size: 11px; font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        td { padding: 13px 18px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:hover td { background: #fafcff; }
+
+        .app-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .publisher-tag {
+            font-size: 11px; font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-body);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        .version-pill {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 12px; font-weight: 600;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+        }
+        .version-bc { background: var(--auba-blue-light); border-color: #c3daf5; color: var(--auba-blue-dark); }
+        .version-gh { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-ok      { background: var(--success-bg); color: var(--success); }
+        .status-warn    { background: var(--warning-bg); color: var(--warning); }
+        .status-error   { background: var(--danger-bg);  color: var(--danger); }
+        .status-pending { background: var(--bg-body);    color: var(--text-muted); }
+
+        .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .dot-ok      { background: var(--success); }
+        .dot-warn    { background: var(--warning); }
+        .dot-error   { background: var(--danger); }
+        .dot-pending { background: var(--text-soft); }
+
+        .text-muted-cell { color: var(--text-soft); font-size: 13px; }
+
+        /* ================================================================
+           NO DATA / PLACEHOLDER
+        ================================================================ */
+        .no-data-state { text-align: center; padding: 80px 20px; }
+        .no-data-icon  { font-size: 48px; margin-bottom: 16px; }
+        .no-data-state h3 { font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        .no-data-state p  { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+        .no-data-state code {
+            background: var(--bg-body); padding: 8px 16px;
+            border-radius: 8px; font-size: 13px;
+            color: var(--auba-blue); border: 1px solid var(--border-color);
+            display: inline-block;
+        }
+        .placeholder-tab { text-align: center; padding: 100px 20px; }
+        .placeholder-tab h3 { font-size: 18px; font-weight: 600; color: var(--text-main); margin-top: 16px; margin-bottom: 8px; }
+        .placeholder-tab p  { font-size: 14px; color: var(--text-muted); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd6e2; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="header-title">
+        <h1>Centro de Control de Clientes</h1>
+        <p>Auba Dynamic Consulting Solutions</p>
+    </div>
+    <div>
+        <img src="logo_horizontal.png" alt="AUBA DCS" class="logo-horizontal">
+    </div>
+</header>
+
+<div class="main-layout">
+
+    <!-- SIDEBAR: CLIENTES -->
+    <aside class="sidebar">
+        <!-- BEGIN_SIDEBAR_TABS -->
+        <div class="client-tab active" onclick="selectClient(this,'RNA')">
+            RNA
+            <div class="tab-indicator"></div>
+        </div>
+        <!-- END_SIDEBAR_TABS -->
+        <div class="sidebar-logo-bottom">
+            <img src="logo_vertical.png" alt="AUBA" class="logo-vertical">
+        </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area">
+
+        <!-- TOP TABS -->
+        <div class="tabs-bar">
+            <button class="tab-btn active" onclick="switchTab('versiones',this)" id="tabBtn-versiones">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Versiones APP
+            </button>
+            <button class="tab-btn" onclick="switchTab('correo',this)" id="tabBtn-correo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Correo Clientes
+            </button>
+            <button class="tab-btn" onclick="switchTab('entornos',this)" id="tabBtn-entornos">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                Entornos BC
+            </button>
+        </div>
+
+        <div class="content-scroll">
+
+            <!-- ===================================================
+                 TAB: VERSIONES APP
+            =================================================== -->
+            <div id="tab-versiones">
+
+                <!-- Sin datos (se muestra si no hay data.js) -->
+                <div id="no-data-state" style="display:none">
+                    <div class="no-data-state">
+                        <div class="no-data-icon">📊</div>
+                        <h3>Sin datos disponibles</h3>
+                        <p>Ejecuta el script de sincronización para generar los datos del dashboard.</p>
+                        <code>sincronizar_bc_sharepoint.ps1</code>
+                    </div>
+                </div>
+
+                <!-- Con datos -->
+                <div id="data-state">
+
+                    <!-- ENTORNOS (botones dinámicos) -->
+                    <div class="env-buttons-row" id="env-buttons-container"></div>
+
+                    <!-- INFO BAR -->
+                    <div class="env-info-bar">
+                        <div class="info-item">
+                            <span class="info-label">Cliente</span>
+                            <span class="info-value" id="info-cliente">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Entorno</span>
+                            <span class="info-value" id="info-entorno">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tenant ID</span>
+                            <span class="info-value mono" id="info-tenant">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Versión instalada</span>
+                            <span class="info-value highlight" id="info-version">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Próx. actualización Microsoft</span>
+                            <span class="info-value next-update" id="info-nextupdate">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Última sincronización</span>
+                            <span class="info-value" id="info-sync">—</span>
+                        </div>
+                        <div class="info-link-box">
+                            <a id="info-url" href="#" target="_blank" class="env-link">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                Abrir entorno
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- TOOLBAR -->
+                    <div class="table-toolbar">
+                        <div class="table-title-box">
+                            <img src="https://static2.sharepointonline.com/files/fabric/assets/brand-icons/product/svg/business_central_48x1.svg" alt="BC" style="height:22px">
+                            <h3>Extensiones instaladas &nbsp;·&nbsp; <span id="total-count" style="color:var(--text-muted);font-weight:500">0</span> en total</h3>
+                        </div>
+                        <input class="search-box" type="text" id="search-input"
+                               placeholder="Buscar extensión..."
+                               oninput="doSearch(this.value)">
+                    </div>
+
+                    <!-- GRUPO: AUBA -->
+                    <div class="pub-group" id="group-auba">
+                        <div class="group-hdr hdr-auba" onclick="toggleGroup('auba')">
+                            <div class="group-hdr-left">
+                                <svg class="group-chevron" id="chev-auba" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                                <span class="group-name gname-auba">AUBA</span>
+                                <span class="group-badge gbadge-auba" id="cnt-auba">0</span>
+                            </div>
+                            <span class="group-sub">Publishers: Auba DCS · AUBA · ADCS</span>
+                        </div>
+                        <div class="group-bdy open" id="bdy-auba">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Extensión</th>
+                                        <th>Publisher</th>
+                                        <th>Versión BC</th>
+                                        <th>Versión GitHub</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-auba"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO: MICROSOFT -->
+                    <div class="pub-group" id="group-microsoft">
+                        <div class="group-hdr hdr-microsoft" onclick="toggleGroup('microsoft')">
+                            <div class="group-hdr-left">
+                                <svg class="group-chevron rotated" id="chev-microsoft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                                <span class="group-name gname-microsoft">Microsoft</span>
+                                <span class="group-badge gbadge-microsoft" id="cnt-microsoft">0</span>
+                            </div>
+                        </div>
+                        <div class="group-bdy closed" id="bdy-microsoft">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Extensión</th>
+                                        <th>Publisher</th>
+                                        <th>Versión BC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-microsoft"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO: OTROS -->
+                    <div class="pub-group" id="group-otros" style="display:none">
+                        <div class="group-hdr hdr-otros" onclick="toggleGroup('otros')">
+                            <div class="group-hdr-left">
+                                <svg class="group-chevron rotated" id="chev-otros" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                                <span class="group-name gname-otros">Otros publishers</span>
+                                <span class="group-badge gbadge-otros" id="cnt-otros">0</span>
+                            </div>
+                        </div>
+                        <div class="group-bdy closed" id="bdy-otros">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Extensión</th>
+                                        <th>Publisher</th>
+                                        <th>Versión BC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-otros"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div><!-- /data-state -->
+            </div><!-- /tab-versiones -->
+
+            <!-- TAB: CORREO -->
+            <div id="tab-correo" style="display:none">
+                <div class="placeholder-tab">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <h3>Gestión de Correos</h3>
+                    <p>Esta sección se activará automáticamente al conectar la API.</p>
+                </div>
+            </div>
+
+            <!-- TAB: ENTORNOS -->
+            <div id="tab-entornos" style="display:none">
+                <div class="placeholder-tab">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <h3>Métricas de Entornos</h3>
+                    <p>Esta sección se activará automáticamente al conectar la API.</p>
+                </div>
+            </div>
+
+        </div><!-- /content-scroll -->
+    </div><!-- /content-area -->
+</div><!-- /main-layout -->
+
+<!-- BEGIN_SP_DATA -->
+<script>window.SP_DATA = {"lastSync":"2026-05-28T21:02:09Z","clientes":{"RNA":{"tenantId":"187709c9-6994-4c5d-a2de-b687b50ca8e7","entornos":[{"nombre":"TEST","tipo":"Sandbox","estado":"Active","versionBC":"28.0.46665.50632","proxVersion":"28.1","fechaUpdate":"2026-06-08T21:00:00Z","url":"https://businesscentral.dynamics.com/187709c9-6994-4c5d-a2de-b687b50ca8e7/TEST","extensiones":[{"versionBC":"28.0.46665.50632","nombre":"Agent Design Experience","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"AMC Banking 365 Fundamentals","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"API - Cross Environment Intercompany","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.1","nombre":"Api ERP Interface","publisher":"AUBA DCS","versionGH":"1.0.0.1","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"API Reports - Finance","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.18","nombre":"AUBA Consultant Tools","publisher":"Auba DCS","versionGH":"1.0.0.18","estado":"Al dia"},{"versionBC":"1.0.0.0","nombre":"AUBA_IRPF Advanced","publisher":"Auba DCS","versionGH":"1.0.0.32","estado":"Actualizar en cliente"},{"versionBC":"3.0.0.12","nombre":"AubaHUB","publisher":"Auba DCS","versionGH":"3.0.0.12","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Audit File Export","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Bank Account Reconciliation With AI","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50632","nombre":"Base Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Intelligent Cloud","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Foundation","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Company Hub","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Contoso Coffee Demo Dataset (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Create Product Information With Copilot","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Archive","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Search","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.1","nombre":"Dim. Correction","publisher":"AUBA","versionGH":"1.0.0.1","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Dynamics BC Excel Reports","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Avalara","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.49032","nombre":"E-Document Connector - Microsoft 365","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Pagero","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"E-Document Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Core Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Format for Factura-E","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Current User Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Microsoft 365 Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Outlook REST API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Enforced Digital Vouchers","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Error Messages with Recommendations","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"ESG Statistical Accounts Demo Tool","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Essential Business Headlines","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure Blob Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure File Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"External File Storage - SharePoint Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intelligent Cloud Base","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat ES","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Late Payment Prediction","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Manufacturing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50632","nombre":"Payables Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Links to PayPal","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Practices","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"PEPPOL","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"2.1.0.10","nombre":"POS_Interface","publisher":"Auba DCS","versionGH":"2.1.0.10","estado":"Al dia"},{"versionBC":"28.0.46665.48632","nombre":"Power BI Report embeddings for Dynamics 365 Business Central","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Recommended Apps","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Review General Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sales and Inventory Forecast","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sales Lines Suggestions","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Sales Order Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Send To Email Printer","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Service Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Shopify Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Simplified Bank Statement Import","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.54","nombre":"Starter Pack","publisher":"Auba DCS","versionGH":"1.0.0.54","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Statistical Accounts","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Subscription Billing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Subscription Billing Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50632","nombre":"System Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Troubleshoot FA Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Universal Print Integration","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"VAT Group Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Withholding Tax","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"27.5.46862.46929","nombre":"WorldPay Payments Standard","publisher":"Microsoft","versionGH":"","estado":""}]},{"nombre":"TEST_PMS","tipo":"Sandbox","estado":"Active","versionBC":"28.0.46665.50526","proxVersion":"28.1","fechaUpdate":"2026-06-08T21:00:00Z","url":"https://businesscentral.dynamics.com/187709c9-6994-4c5d-a2de-b687b50ca8e7/TEST_PMS","extensiones":[{"versionBC":"28.0.46665.50105","nombre":"AMC Banking 365 Fundamentals","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"API - Cross Environment Intercompany","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.1","nombre":"Api ERP Interface","publisher":"AUBA DCS","versionGH":"1.0.0.1","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"API Reports - Finance","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.16","nombre":"AUBA Consultant Tools","publisher":"Auba DCS","versionGH":"1.0.0.18","estado":"Actualizar en cliente"},{"versionBC":"3.0.0.12","nombre":"AubaHUB","publisher":"Auba DCS","versionGH":"3.0.0.12","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Audit File Export","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Bank Account Reconciliation With AI","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Base Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Intelligent Cloud","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Foundation","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Company Hub","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Contoso Coffee Demo Dataset (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Create Product Information With Copilot","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Archive","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Search","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.1","nombre":"Dim. Correction","publisher":"AUBA","versionGH":"1.0.0.1","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Dynamics BC Excel Reports","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.3.20250612","nombre":"Dynasoft Advanced Settlement for Cartera","publisher":"Grupo Dynasoft","versionGH":"","estado":""},{"versionBC":"1.9.1.20260306","nombre":"Dynasoft Extension Manager","publisher":"Grupo Dynasoft","versionGH":"","estado":""},{"versionBC":"1.45.0.20260505","nombre":"Dynasoft Integration for Embat.io","publisher":"Grupo Dynasoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Avalara","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.49032","nombre":"E-Document Connector - Microsoft 365","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Pagero","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"E-Document Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Core Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Format for Factura-E","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Current User Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Microsoft 365 Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Outlook REST API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Enforced Digital Vouchers","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Error Messages with Recommendations","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.3","nombre":"Error Monitor","publisher":"Auba DCS","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"ESG Statistical Accounts Demo Tool","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Essential Business Headlines","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure Blob Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure File Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"External File Storage - SharePoint Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intelligent Cloud Base","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat ES","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.26","nombre":"IRPF","publisher":"AUBA","versionGH":"1.0.0.32","estado":"Actualizar en cliente"},{"versionBC":"28.0.46665.48257","nombre":"Late Payment Prediction","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Manufacturing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Payables Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Links to PayPal","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Practices","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"PEPPOL","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.85","nombre":"PMS Bridge","publisher":"Auba DCS","versionGH":"1.0.0.124","estado":"Actualizar en cliente"},{"versionBC":"2.1.0.8","nombre":"POS_Interface","publisher":"Auba DCS","versionGH":"2.1.0.10","estado":"Actualizar en cliente"},{"versionBC":"2.1.0.10","nombre":"POS_Interface","publisher":"Auba DCS","versionGH":"2.1.0.10","estado":"Al dia"},{"versionBC":"28.0.46665.48632","nombre":"Power BI Report embeddings for Dynamics 365 Business Central","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Recommended Apps","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Review General Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.10","nombre":"RNA_queries","publisher":"Auba DCS","versionGH":"","estado":""},{"versionBC":"1.0.0.10","nombre":"RNAPersonalizations","publisher":"Auba DCS","versionGH":"1.0.0.10","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Sales and Inventory Forecast","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sales Lines Suggestions","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Sales Order Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Send To Email Printer","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Service Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Shopify Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Simplified Bank Statement Import","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.55","nombre":"Starter Pack","publisher":"Auba DCS","versionGH":"1.0.0.54","estado":"GitHub desactualizado"},{"versionBC":"28.0.46665.48257","nombre":"Statistical Accounts","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Subscription Billing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Subscription Billing Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"System Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Troubleshoot FA Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Universal Print Integration","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"VAT Group Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Withholding Tax","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"27.5.46862.46929","nombre":"WorldPay Payments Standard","publisher":"Microsoft","versionGH":"","estado":""}]},{"nombre":"TestPBI","tipo":"Sandbox","estado":"Active","versionBC":"28.0.46665.50526","proxVersion":"28.1","fechaUpdate":"2026-06-05T21:00:00Z","url":"https://businesscentral.dynamics.com/187709c9-6994-4c5d-a2de-b687b50ca8e7/TestPBI","extensiones":[{"versionBC":"28.0.46665.50526","nombre":"Agent Design Experience","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"AMC Banking 365 Fundamentals","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"API - Cross Environment Intercompany","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"API Reports - Finance","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"3.0.0.11","nombre":"AubaHUB","publisher":"Auba DCS","versionGH":"3.0.0.12","estado":"Actualizar en cliente"},{"versionBC":"28.0.46665.48257","nombre":"Audit File Export","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Bank Account Reconciliation With AI","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Base Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration - Previous Release (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Cloud Migration API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Central Intelligent Cloud","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Business Foundation","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Company Hub","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Contoso Coffee Demo Dataset (ES)","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Create Product Information With Copilot","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Archive","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Data Search","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.0","nombre":"Dim. Correction","publisher":"AUBA","versionGH":"1.0.0.1","estado":"Actualizar en cliente"},{"versionBC":"28.0.46665.48257","nombre":"Dynamics BC Excel Reports","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Avalara","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.49032","nombre":"E-Document Connector - Microsoft 365","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Connector - Pagero","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"E-Document Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Core Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"E-Document Format for Factura-E","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Current User Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Microsoft 365 Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Email - Outlook REST API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP API","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"Email - SMTP Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Enforced Digital Vouchers","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Error Messages with Recommendations","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"ESG Statistical Accounts Demo Tool","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Essential Business Headlines","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure Blob Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"External File Storage - Azure File Service Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"External File Storage - SharePoint Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intelligent Cloud Base","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat Core","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Intrastat ES","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Late Payment Prediction","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Manufacturing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Payables Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Links to PayPal","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Payment Practices","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"PEPPOL","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.42","nombre":"PMS Bridge","publisher":"AUBA","versionGH":"1.0.0.124","estado":"Actualizar en cliente"},{"versionBC":"28.0.46665.48632","nombre":"Power BI Report embeddings for Dynamics 365 Business Central","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Recommended Apps","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Review General Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.10","nombre":"RNAPersonalizations","publisher":"Auba DCS","versionGH":"1.0.0.10","estado":"Al dia"},{"versionBC":"28.0.46665.48257","nombre":"Sales and Inventory Forecast","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sales Lines Suggestions","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Sales Order Agent","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Send To Email Printer","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Service Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50105","nombre":"Shopify Connector","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Simplified Bank Statement Import","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"1.0.0.51","nombre":"Starter Pack","publisher":"Auba DCS","versionGH":"1.0.0.54","estado":"Actualizar en cliente"},{"versionBC":"28.0.46665.48257","nombre":"Statistical Accounts","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Subscription Billing","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Subscription Billing Demo Data","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Sustainability Contoso Coffee Demo Dataset","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.50526","nombre":"System Application","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Troubleshoot FA Ledger Entries","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"Universal Print Integration","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48257","nombre":"VAT Group Management","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"28.0.46665.48632","nombre":"Withholding Tax","publisher":"Microsoft","versionGH":"","estado":""},{"versionBC":"27.5.46862.46929","nombre":"WorldPay Payments Standard","publisher":"Microsoft","versionGH":"","estado":""}]}]}}};</script>
+<!-- END_SP_DATA -->
+<script>
+/* ================================================================
+   DASHBOARD LOGIC — lee window.SP_DATA generado por el script PS
+================================================================ */
+
+function init() {
+    if (!window.SP_DATA || !window.SP_DATA.clientes) {
+        document.getElementById('no-data-state').style.display = '';
+        document.getElementById('data-state').style.display   = 'none';
+        return;
+    }
+
+    // Tomar el primer cliente disponible
+    const aliases = Object.keys(window.SP_DATA.clientes);
+    if (aliases.length === 0) return;
+
+    document.getElementById('info-sync').textContent = formatDate(window.SP_DATA.lastSync);
+    loadClientData(aliases[0]);
+}
+
+/* ---- Entornos ---- */
+function renderEnvButtons(entornos) {
+    const c = document.getElementById('env-buttons-container');
+    c.innerHTML = '';
+    entornos.forEach((env, i) => {
+        const isProd = (env.tipo || '').toLowerCase() === 'production';
+        const btn = document.createElement('button');
+        btn.className = 'env-btn' + (i === 0 ? ' active' : '');
+        btn.onclick = () => {
+            document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateInfoBar(env);
+            // Cambiar tabla de extensiones al entorno seleccionado
+            const exts = env.extensiones || [];
+            document.getElementById('total-count').textContent = exts.length;
+            renderGroups(exts);
+        };
+        btn.innerHTML = `
+            <div class="env-type">${isProd ? 'Entorno Principal' : 'Entorno de Pruebas'}</div>
+            <div class="env-name">${env.nombre || '—'}</div>
+            <span class="env-badge ${isProd ? 'badge-prod' : 'badge-sandbox'}">${isProd ? 'PRODUCCIÓN' : 'SANDBOX'}</span>`;
+        c.appendChild(btn);
+
+        if (i === 0) updateInfoBar(env);
+    });
+}
+
+function updateInfoBar(env) {
+    const ver   = env.versionBC || '0.0.0.0';
+    const major = parseInt(ver.split('.')[0]) || 0;
+    document.getElementById('info-version').textContent    = `BC ${major}  ·  v${ver}`;
+    document.getElementById('info-entorno').textContent    = env.nombre || '—';
+    // Proxima actualizacion: usar dato real del API si existe, sino calcular estimado
+    if (env.proxVersion && env.fechaUpdate) {
+        const fecha = new Date(env.fechaUpdate);
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const fStr  = `${fecha.getDate()} ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
+        const icon  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+        document.getElementById('info-nextupdate').innerHTML = `${icon} BC ${env.proxVersion} · ${fStr}`;
+    } else {
+        document.getElementById('info-nextupdate').innerHTML = getNextBCUpdate(major);
+    }
+    const urlEl = document.getElementById('info-url');
+    urlEl.href         = env.url || '#';
+    urlEl.style.display = env.url ? '' : 'none';
+}
+
+function getNextBCUpdate(major) {
+    // BC 24 = Abr 2024, cada versión = 6 meses
+    const next = major + 1;
+    const base = new Date(2024, 3, 1);
+    base.setMonth(base.getMonth() + (next - 24) * 6);
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const icon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+    return `${icon} BC ${next} · ${meses[base.getMonth()]} ${base.getFullYear()}`;
+}
+
+/* ---- Grupos ---- */
+function renderGroups(exts) {
+    const auba = [], microsoft = [], otros = [];
+
+    exts.forEach(ext => {
+        const pub = (ext.publisher || '').toLowerCase();
+        if (pub.includes('auba') || pub.includes('adcs')) {
+            auba.push(ext);
+        } else if (pub === 'microsoft') {
+            microsoft.push(ext);
+        } else {
+            otros.push(ext);
+        }
+    });
+
+    fillGroup('auba',      auba,      true);
+    fillGroup('microsoft', microsoft, false);
+    fillGroup('otros',     otros,     false);
+}
+
+function fillGroup(id, exts, isAuba) {
+    document.getElementById('cnt-' + id).textContent = exts.length;
+
+    if (exts.length === 0) {
+        document.getElementById('group-' + id).style.display = 'none';
+        return;
+    }
+    document.getElementById('group-' + id).style.display = '';
+
+    document.getElementById('tbody-' + id).innerHTML =
+        exts.map(ext => buildRow(ext, isAuba)).join('');
+}
+
+function buildRow(ext, isAuba) {
+    const search = ((ext.nombre || '') + ' ' + (ext.publisher || '')).toLowerCase();
+    const bcPill = `<span class="version-pill version-bc">${ext.versionBC || '—'}</span>`;
+
+    let extraCols = '';
+    if (isAuba) {
+        const ghPill = ext.versionGH
+            ? `<span class="version-pill version-gh">${ext.versionGH}</span>`
+            : `<span class="text-muted-cell">—</span>`;
+        extraCols = `<td>${ghPill}</td><td>${buildStatus(ext.estado)}</td>`;
+    }
+
+    return `<tr data-search="${search}">
+        <td><div class="app-name">${ext.nombre || '—'}</div></td>
+        <td><span class="publisher-tag">${ext.publisher || '—'}</span></td>
+        <td>${bcPill}</td>
+        ${extraCols}
+    </tr>`;
+}
+
+function buildStatus(estado) {
+    if (!estado) return '<span class="text-muted-cell">—</span>';
+    const cfg = {
+        'Al dia':                ['status-ok',   'dot-ok',    '✓ Al día'],
+        'Actualizar en cliente': ['status-warn',  'dot-warn', '⚠ Actualizar en cliente'],
+        'GitHub desactualizado': ['status-error', 'dot-error','✗ GitHub desactualizado'],
+    }[estado];
+    if (!cfg) return `<span class="status-badge status-pending">${estado}</span>`;
+    return `<span class="status-badge ${cfg[0]}"><span class="dot ${cfg[1]}"></span>${cfg[2]}</span>`;
+}
+
+/* ---- Accordion toggle ---- */
+function toggleGroup(id) {
+    const bdy  = document.getElementById('bdy-'  + id);
+    const chev = document.getElementById('chev-' + id);
+    const open = bdy.classList.contains('open');
+    bdy.classList.toggle('open',   !open);
+    bdy.classList.toggle('closed',  open);
+    chev.classList.toggle('rotated', !open);
+}
+
+/* ---- Búsqueda ---- */
+function doSearch(q) {
+    const term = q.toLowerCase().trim();
+    ['auba','microsoft','otros'].forEach(id => {
+        const tbody = document.getElementById('tbody-' + id);
+        if (!tbody) return;
+        let vis = 0;
+        tbody.querySelectorAll('tr').forEach(tr => {
+            const match = !term || (tr.dataset.search || '').includes(term);
+            tr.style.display = match ? '' : 'none';
+            if (match) vis++;
+        });
+        document.getElementById('cnt-' + id).textContent = vis;
+        // Si hay búsqueda y hay resultados, abrir el grupo
+        if (term && vis > 0) {
+            const bdy  = document.getElementById('bdy-'  + id);
+            const chev = document.getElementById('chev-' + id);
+            if (bdy)  { bdy.classList.add('open'); bdy.classList.remove('closed'); }
+            if (chev) { chev.classList.remove('rotated'); }
+        }
+    });
+}
+
+/* ---- Tabs ---- */
+function switchTab(tabId, btn) {
+    ['versiones','correo','entornos'].forEach(id => {
+        document.getElementById('tab-'    + id).style.display = 'none';
+        document.getElementById('tabBtn-' + id).classList.remove('active');
+    });
+    document.getElementById('tab-'    + tabId).style.display = '';
+    btn.classList.add('active');
+}
+
+function selectClient(el, alias) {
+    document.querySelectorAll('.client-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    loadClientData(alias);
+}
+
+function loadClientData(alias) {
+    if (!window.SP_DATA || !window.SP_DATA.clientes) return;
+    const d = window.SP_DATA.clientes[alias];
+    if (!d || !d.entornos || d.entornos.length === 0) {
+        document.getElementById('no-data-state').style.display = '';
+        document.getElementById('data-state').style.display   = 'none';
+        return;
+    }
+    document.getElementById('no-data-state').style.display = 'none';
+    document.getElementById('data-state').style.display   = '';
+    // Mostrar alias como nombre de cliente, tenantId del primer entorno
+    document.getElementById('info-cliente').textContent = alias;
+    document.getElementById('info-tenant').textContent  = d.tenantId || '—';
+    // Cargar el primer entorno por defecto
+    const primerEnv = d.entornos[0];
+    const exts      = primerEnv.extensiones || [];
+    document.getElementById('total-count').textContent = exts.length;
+    renderEnvButtons(d.entornos);
+    renderGroups(exts);
+}
+
+/* ---- Utilidades ---- */
+function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'})
+             + ' ' + d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+    } catch { return iso; }
+}
+
+// Arrancar
+init();
+</script>
+</body>
+</html>
+
+
+
+
